@@ -1,0 +1,30 @@
+public function getDownloadInventoryInstruments(){
+        $hospital_id = System::getHospitalId();
+        $results = DB::table('instruments')->select('id','name','instrument_master_code','instrument_code','type_id','loose_pack','short_code','old_short_codes')->where('owner_id', $hospital_id)->get()->toArray();
+        $filename = "Instrument_GK";
+        if($results){
+            $data = System::objectToArray($results);
+            ob_end_clean();
+            ob_start();
+            return \Excel::create($filename, function($excel) use ($data) {
+                $excel->sheet('mySheet', function($sheet) use ($data){
+                    $sheet->fromArray($data);
+                });
+            })->download('csv');
+        }else{
+            $data = ['id','name','instrument_master_code','instrument_code','type_id','loose_pack','short_code','old_short_codes'];
+            return \Excel::create($filename, function($excel) use ($data) {
+                $excel->sheet('mySheet', function($sheet) use ($data){
+                    $sheet->fromArray($data);
+                });
+            })->download('csv');
+        }
+    }
+    
+    
+    
+    Route::get('gk/download', [
+        //'middleware' => ['auth', 'acl'],
+        'uses' => 'InventoryController@getDownloadInventoryInstruments',
+        //'permissions' => ['inventory_home_view'],
+    ]);
